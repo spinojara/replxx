@@ -817,12 +817,13 @@ void Replxx::ReplxxImpl::render( HINT_ACTION hintAction_ ) {
     { replxx::color::rgb666(1, 4, 1), replxx::color::rgb666(2, 5, 2) }, // Green → Brighter green
     { replxx::color::rgb666(1, 4, 4), replxx::color::rgb666(2, 5, 5) }, // Teal → Bright cyan
     { replxx::color::rgb666(2, 1, 4), replxx::color::rgb666(3, 2, 5) }, // Indigo → Brighter indigo
-    { replxx::color::rgb666(4, 1, 4), replxx::color::rgb666(5, 2, 5) }  // Violet → Bright violet
+    { replxx::color::rgb666(4, 1, 4), replxx::color::rgb666(5, 2, 5) }, // Violet → Bright violet
+
+    { Replxx::Color::BRIGHTRED,       replxx::color::rgb666(5, 1, 1) }  // ANSI bright red → vivid highlight
 	};
 	paren_info_t pi( matching_paren() );
 	Replxx::Color ERROR( Replxx::Color::RED | color::bg( Replxx::Color::BRIGHTRED ) );
-	if ( pi.index != -1 ) {
-		// colors[pi.index] = pi.error ? ERROR : Replxx::Color::BRIGHTRED;
+	if ( pi.index != -1 && brighter_colormap.find( colors[pi.index] ) != brighter_colormap.end() ) {
 		colors[_pos] = brighter_colormap[colors[_pos]];
 		colors[pi.index] = brighter_colormap[colors[pi.index]];
 	}
