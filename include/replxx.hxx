@@ -331,7 +331,7 @@ public:
 	 * \param input - an UTF-8 encoded input entered by the user so far.
 	 * \param colors - output buffer for color information.
 	 */
-	typedef std::function<void ( std::string const& input, colors_t& colors )> highlighter_callback_t;
+	typedef std::function<void ( std::string const& input, colors_t& colors , int pos )> highlighter_callback_t;
 
 	/*! \brief Hints callback type definition.
 	 *
