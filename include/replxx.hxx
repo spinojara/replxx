@@ -333,6 +333,22 @@ public:
 	 */
 	typedef std::function<void ( std::string const& input, colors_t& colors )> highlighter_callback_t;
 
+	/*! \brief Highlighter callback type definition.
+	 *
+	 * If user want to have colorful input she must simply install highlighter callback.
+	 * The callback would be invoked by the library after each change to the input done by
+	 * the user. After callback returns library uses data from colors buffer to colorize
+	 * displayed user input.
+	 *
+	 * Size of \e colors buffer is equal to number of code points in user \e input
+	 * which will be different from simple `input.length()`!
+	 *
+	 * \param input - an UTF-8 encoded input entered by the user so far.
+	 * \param colors - output buffer for color information.
+	 * \param pos - current cursor position in code points.
+	 */
+	typedef std::function<void ( std::string const& input, colors_t& colors , int pos )> highlighter_callback_with_pos_t;
+
 	/*! \brief Hints callback type definition.
 	 *
 	 * \e contextLen is counted in Unicode code points (not in bytes!).
@@ -412,6 +428,12 @@ public:
 	 * \param fn - user defined callback function.
 	 */
 	void set_highlighter_callback( highlighter_callback_t const& fn );
+
+	/*! \brief Register highlighter callback with position.
+	 *
+	 * \param fn - user defined callback function.
+	 */
+	void set_highlighter_callback( highlighter_callback_with_pos_t const& fn );
 
 	/*! \brief Register hints callback.
 	 *

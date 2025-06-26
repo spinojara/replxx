@@ -137,6 +137,7 @@ private:
 	Replxx::modify_callback_t _modifyCallback;
 	Replxx::completion_callback_t _completionCallback;
 	Replxx::highlighter_callback_t _highlighterCallback;
+	Replxx::highlighter_callback_with_pos_t _highlighterCallbackWithPosition;
 	Replxx::hint_callback_t _hintCallback;
 	key_presses_t _keyPresses;
 	messages_t _messages;
@@ -170,6 +171,7 @@ public:
 	void set_modify_callback( Replxx::modify_callback_t const& fn );
 	void set_completion_callback( Replxx::completion_callback_t const& fn );
 	void set_highlighter_callback( Replxx::highlighter_callback_t const& fn );
+	void set_highlighter_callback_with_pos( Replxx::highlighter_callback_with_pos_t const& fn );
 	void set_hint_callback( Replxx::hint_callback_t const& fn );
 	char const* input( std::string const& prompt );
 	void history_add( std::string const& line );

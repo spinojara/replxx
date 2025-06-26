@@ -808,11 +808,15 @@ void Replxx::ReplxxImpl::render( HINT_ACTION hintAction_ ) {
 	if ( !! _highlighterCallback ) {
 		IOModeGuard ioModeGuard( _terminal );
 		_highlighterCallback( _utf8Buffer.get(), colors );
-	}
-	paren_info_t pi( matching_paren() );
-	Replxx::Color ERROR( Replxx::Color::RED | color::bg( Replxx::Color::BRIGHTRED ) );
-	if ( pi.index != -1 ) {
-		colors[pi.index] = pi.error ? ERROR : Replxx::Color::BRIGHTRED;
+	} else if ( !! _highlighterCallbackWithPosition ) {
+		IOModeGuard ioModeGuard( _terminal );
+		_highlighterCallbackWithPosition( _utf8Buffer.get(), colors, _pos );
+	} else {
+		paren_info_t pi( matching_paren() );
+		Replxx::Color ERROR( Replxx::Color::RED | color::bg( Replxx::Color::BRIGHTRED ) );
+		if ( pi.index != -1 ) {
+			colors[pi.index] = pi.error ? ERROR : Replxx::Color::BRIGHTRED;
+		}
 	}
 	Replxx::Color c( Replxx::Color::DEFAULT );
 	for ( int i( 0 ); i < _data.length(); ++ i ) {
@@ -2509,6 +2513,10 @@ void Replxx::ReplxxImpl::set_completion_callback( Replxx::completion_callback_t 
 
 void Replxx::ReplxxImpl::set_highlighter_callback( Replxx::highlighter_callback_t const& fn ) {
 	_highlighterCallback = fn;
+}
+
+void Replxx::ReplxxImpl::set_highlighter_callback_with_pos( Replxx::highlighter_callback_with_pos_t const& fn ) {
+	_highlighterCallbackWithPosition = fn;
 }
 
 void Replxx::ReplxxImpl::set_hint_callback( Replxx::hint_callback_t const& fn ) {
