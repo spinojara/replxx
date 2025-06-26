@@ -142,6 +142,10 @@ void Replxx::set_highlighter_callback( highlighter_callback_t const& fn ) {
 	_impl->set_highlighter_callback( fn );
 }
 
+void Replxx::set_highlighter_callback( highlighter_callback_with_pos_t const& fn ) {
+	_impl->set_highlighter_callback_with_pos( fn );
+}
+
 void Replxx::set_hint_callback( hint_callback_t const& fn ) {
 	_impl->set_hint_callback( fn );
 }
