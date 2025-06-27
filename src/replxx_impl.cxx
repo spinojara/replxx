@@ -181,6 +181,7 @@ Replxx::ReplxxImpl::ReplxxImpl( std::istream & in_, std::ostream & out_, int in_
 	, _prompt( _terminal )
 	, _completionCallback( nullptr )
 	, _highlighterCallback( nullptr )
+	, _highlighterCallbackWithPosition( nullptr )
 	, _hintCallback( nullptr )
 	, _keyPresses()
 	, _messages()
@@ -1512,7 +1513,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::insert_character( char32_t c ) {
 	if (
 		( _pos == _data.length() )
 		&& ! _modifiedState
-		&& ( _noColor || ! ( !! _highlighterCallback || !! _hintCallback ) )
+		&& ( _noColor || ! ( !! _highlighterCallback || !! _highlighterCallbackWithPosition || !! _hintCallback ) )
 		&& ( yCursorPos == 0 )
 	) {
 		/* Avoid a full assign of the line in the
