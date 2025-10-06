@@ -175,6 +175,7 @@ Replxx::ReplxxImpl::ReplxxImpl( std::istream & in_, std::ostream & out_, int in_
 	, _noColor( false )
 	, _indentMultiline( true )
 	, _namedActions()
+	, _editingMode( 0 )
 	, _keyPressHandlers()
 	, _terminal(in_fd_, out_fd_)
 	, _currentThread()
@@ -412,17 +413,17 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::invoke( Replxx::ACTION action_, char32
 	return ( Replxx::ACTION_RESULT::BAIL );
 }
 
-void Replxx::ReplxxImpl::bind_key( char32_t code_, Replxx::key_press_handler_t handler_ ) {
-	_keyPressHandlers[code_] = handler_;
+void Replxx::ReplxxImpl::bind_key( char32_t code_, Replxx::key_press_handler_t handler_, int editingMode_ ) {
+	_keyPressHandlers[editingMode_][code_] = handler_;
 }
 
-void Replxx::ReplxxImpl::bind_key_internal( char32_t code_, char const* actionName_ ) {
+void Replxx::ReplxxImpl::bind_key_internal( char32_t code_, char const* actionName_, int editingMode_ ) {
 	named_actions_t::const_iterator it( _namedActions.find( actionName_ ) );
 	if ( it == _namedActions.end() ) {
 		throw std::runtime_error( std::string( "replxx: Unknown action name: " ).append( actionName_ ) );
 	}
 	if ( !! it->second ) {
-		bind_key( code_, it->second );
+		bind_key( code_, it->second, editingMode_ );
 	}
 }
 
@@ -1430,15 +1431,15 @@ int Replxx::ReplxxImpl::get_input_line( void ) {
 			continue;
 		}
 
-		key_press_handlers_t::iterator it( _keyPressHandlers.find( c ) );
-		if ( it != _keyPressHandlers.end() ) {
+		key_press_handlers_t::iterator it( _keyPressHandlers[_editingMode].find( c ) );
+		if ( it != _keyPressHandlers[_editingMode].end() ) {
 			next = it->second( c );
 			if ( _modifiedState ) {
 				refresh_line();
 			} else if ( _moveCursor ) {
 				move_cursor();
 			}
-		} else {
+		} else if ( _editingMode == 0 ) {
 			next = action( RESET_KILL_ACTION | HISTORY_RECALL_MOST_RECENT, &Replxx::ReplxxImpl::insert_character, c );
 		}
 	}
@@ -2584,6 +2585,10 @@ void Replxx::ReplxxImpl::set_no_color( bool val ) {
 
 void Replxx::ReplxxImpl::set_indent_multiline( bool val ) {
 	_indentMultiline = val;
+}
+
+void Replxx::ReplxxImpl::set_editing_mode( int mode ) {
+	_editingMode = mode;
 }
 
 /**

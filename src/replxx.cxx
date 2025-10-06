@@ -254,12 +254,12 @@ Replxx::ACTION_RESULT Replxx::invoke( ACTION action_, char32_t keyPress_ ) {
 	return ( _impl->invoke( action_, keyPress_ ) );
 }
 
-void Replxx::bind_key( char32_t keyPress_, key_press_handler_t handler_ ) {
-	_impl->bind_key( keyPress_, handler_ );
+void Replxx::bind_key( char32_t keyPress_, key_press_handler_t handler_, int editingMode_ ) {
+	_impl->bind_key( keyPress_, handler_, editingMode_ );
 }
 
-void Replxx::bind_key_internal( char32_t keyPress_, char const* actionName_ ) {
-	_impl->bind_key_internal( keyPress_, actionName_ );
+void Replxx::bind_key_internal( char32_t keyPress_, char const* actionName_, int editingMode_ ) {
+	_impl->bind_key_internal( keyPress_, actionName_, editingMode_ );
 }
 
 Replxx::State Replxx::get_state( void ) const {

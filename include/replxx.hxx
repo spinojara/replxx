@@ -520,7 +520,7 @@ public:
 	 * \param code - handle this key-press event with following handler.
 	 * \param handle - use this handler to handle key-press event.
 	 */
-	void bind_key( char32_t code, key_press_handler_t handler );
+	void bind_key( char32_t code, key_press_handler_t handler, int editingMode = 0 );
 
 	/*! \brief Bind internal `replxx` action (by name) to handle given key-press event.
 	 *
@@ -532,7 +532,7 @@ public:
 	 * \param code - handle this key-press event with following handler.
 	 * \param actionName - name of internal action to be invoked on key press.
 	 */
-	void bind_key_internal( char32_t code, char const* actionName );
+	void bind_key_internal( char32_t code, char const* actionName, int editingMode = 0 );
 
 	void history_add( std::string const& line );
 
@@ -657,6 +657,8 @@ public:
 	 * \param val - if set to true then multiline indent will be enabled.
 	 */
 	void set_indent_multiline( bool val );
+
+	void set_editing_mode( int mode );
 
 	/*! \brief Set maximum number of entries in history list.
 	 */
