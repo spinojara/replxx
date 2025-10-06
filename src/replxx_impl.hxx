@@ -236,6 +236,7 @@ private:
 	Replxx::ACTION_RESULT move_to_previous_word( char32_t );
 	Replxx::ACTION_RESULT move_to_character( char32_t );
 	Replxx::ACTION_RESULT move_to_character_reverse( char32_t );
+	Replxx::ACTION_RESULT move_to_line( char32_t );
 	template <bool subword>
 	Replxx::ACTION_RESULT kill_word_to_left( char32_t );
 	template <bool subword>

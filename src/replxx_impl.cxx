@@ -61,6 +61,7 @@ char const MOVE_CURSOR_TO_PREVIOUS_WORD[]      = "move_cursor_to_previous_word";
 char const MOVE_CURSOR_TO_PREVIOUS_SUBWORD[]   = "move_cursor_to_previous_subword";
 char const MOVE_CURSOR_TO_CHARACTER[]          = "move_cursor_to_character";
 char const MOVE_CURSOR_TO_CHARACTER_REVERSE[]  = "move_cursor_to_character_reverse";
+char const MOVE_CURSOR_TO_LINE[]               = "move_cursor_to_line";
 char const KILL_TO_WHITESPACE_ON_LEFT[]        = "kill_to_whitespace_on_left";
 char const KILL_TO_END_OF_WORD[]               = "kill_to_end_of_word";
 char const KILL_TO_END_OF_SUBWORD[]            = "kill_to_end_of_subword";
@@ -396,6 +397,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::invoke( Replxx::ACTION action_, char32
 		case ( Replxx::ACTION::MOVE_CURSOR_TO_PREVIOUS_SUBWORD ):   return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_to_previous_word<true>, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_TO_CHARACTER ):          return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_to_character, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_TO_CHARACTER_REVERSE ):  return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_to_character_reverse, code ) );
+		case ( Replxx::ACTION::MOVE_CURSOR_TO_LINE ):               return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_to_line, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_ONE_SUBWORD_LEFT ):      return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_word_left<true>, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_ONE_SUBWORD_RIGHT ):     return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_word_right<true>, code ) );
 		case ( Replxx::ACTION::MOVE_CURSOR_LEFT ):                  return ( action( MOVE_CURSOR | RESET_KILL_ACTION, &Replxx::ReplxxImpl::move_one_char_left, code ) );
@@ -1698,6 +1700,27 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::move_to_character_reverse( char32_t c 
 	if (index != -1) {
 		_pos = index + 1 - delete_the_char;
 	}
+	return ( Replxx::ACTION_RESULT::CONTINUE );
+}
+
+Replxx::ACTION_RESULT Replxx::ReplxxImpl::move_to_line( char32_t c ) {
+	int line = c;
+	int pos;
+	if (c > 0) {
+		int i = 1;
+		pos = 0;
+		for (int j = 0; j < _data.length() && i < line; ) {
+			if (_data[j++] == '\n') {
+				i++;
+				pos = j;
+			}
+		}
+	}
+	/* Move to last line. */
+	else {
+		for (pos = _data.length(); pos > 0 && _data[pos - 1] != '\n'; pos--);
+	}
+	_pos = pos;
 	return ( Replxx::ACTION_RESULT::CONTINUE );
 }
 
