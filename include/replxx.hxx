@@ -158,6 +158,10 @@ public:
 		NEW_LINE,
 		DELETE_CHARACTER_UNDER_CURSOR,
 		DELETE_CHARACTER_LEFT_OF_CURSOR,
+		DELETE_UNTIL_NEXT_WORD,
+		DELETE_UNTIL_NEXT_SUBWORD,
+		DELETE_UNTIL_CHARACTER,
+		DELETE_BACKWARDS_UNTIL_CHARACTER,
 		KILL_TO_END_OF_LINE,
 		KILL_TO_BEGINING_OF_LINE,
 		KILL_TO_END_OF_WORD,
@@ -174,6 +178,12 @@ public:
 		MOVE_CURSOR_ONE_WORD_RIGHT,
 		MOVE_CURSOR_ONE_SUBWORD_LEFT,
 		MOVE_CURSOR_ONE_SUBWORD_RIGHT,
+		MOVE_CURSOR_TO_NEXT_WORD,
+		MOVE_CURSOR_TO_NEXT_SUBWORD,
+		MOVE_CURSOR_TO_PREVIOUS_WORD,
+		MOVE_CURSOR_TO_PREVIOUS_SUBWORD,
+		MOVE_CURSOR_TO_CHARACTER,
+		MOVE_CURSOR_TO_CHARACTER_REVERSE,
 		MOVE_CURSOR_LEFT,
 		MOVE_CURSOR_RIGHT,
 		LINE_NEXT,
@@ -596,6 +606,8 @@ public:
 	 * \param wordBreakers - 7-bit ASCII set of word breaking characters.
 	 */
 	void set_word_break_characters( char const* wordBreakers );
+
+	void set_subword_break_characters( char const* wordBreakers );
 
 	/*! \brief How many completions should trigger pagination.
 	 */

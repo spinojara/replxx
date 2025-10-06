@@ -231,6 +231,12 @@ private:
 	template <bool subword>
 	Replxx::ACTION_RESULT move_one_word_right( char32_t );
 	template <bool subword>
+	Replxx::ACTION_RESULT move_to_next_word( char32_t );
+	template <bool subword>
+	Replxx::ACTION_RESULT move_to_previous_word( char32_t );
+	Replxx::ACTION_RESULT move_to_character( char32_t );
+	Replxx::ACTION_RESULT move_to_character_reverse( char32_t );
+	template <bool subword>
 	Replxx::ACTION_RESULT kill_word_to_left( char32_t );
 	template <bool subword>
 	Replxx::ACTION_RESULT kill_word_to_right( char32_t );
@@ -251,6 +257,10 @@ private:
 	Replxx::ACTION_RESULT send_eof( char32_t );
 	Replxx::ACTION_RESULT delete_character( char32_t );
 	Replxx::ACTION_RESULT backspace_character( char32_t );
+	template <bool subword>
+	Replxx::ACTION_RESULT delete_until_next_word( char32_t );
+	Replxx::ACTION_RESULT delete_until_character( char32_t );
+	Replxx::ACTION_RESULT delete_backwards_until_character( char32_t );
 	Replxx::ACTION_RESULT commit_line( char32_t );
 	Replxx::ACTION_RESULT line_next( char32_t );
 	Replxx::ACTION_RESULT line_previous( char32_t );
