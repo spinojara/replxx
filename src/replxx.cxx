@@ -198,6 +198,10 @@ void Replxx::set_word_break_characters( char const* wordBreakers ) {
 	_impl->set_word_break_characters( wordBreakers );
 }
 
+void Replxx::set_subword_break_characters( char const* wordBreakers ) {
+	_impl->set_subword_break_characters( wordBreakers );
+}
+
 void Replxx::set_max_hint_rows( int count ) {
 	_impl->set_max_hint_rows( count );
 }
@@ -587,6 +591,11 @@ void replxx_set_completion_count_cutoff( ::Replxx* replxx_, int count ) {
 void replxx_set_word_break_characters( ::Replxx* replxx_, char const* breakChars_ ) {
 	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
 	replxx->set_word_break_characters( breakChars_ );
+}
+
+void replxx_set_subword_break_characters( ::Replxx* replxx_, char const* breakChars_ ) {
+	replxx::Replxx::ReplxxImpl* replxx( reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ ) );
+	replxx->set_subword_break_characters( breakChars_ );
 }
 
 void replxx_set_double_tab_completion( ::Replxx* replxx_, int val ) {
