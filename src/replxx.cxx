@@ -238,6 +238,14 @@ void Replxx::set_indent_multiline( bool val ) {
 	_impl->set_indent_multiline( val );
 }
 
+void Replxx::set_editing_mode( int mode ) {
+	_impl->set_editing_mode( mode );
+}
+
+void Replxx::set_escdelay( int delay ) {
+	_impl->set_escdelay( delay );
+}
+
 void Replxx::set_max_history_size( int len ) {
 	_impl->set_max_history_size( len );
 }

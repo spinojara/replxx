@@ -2591,6 +2591,10 @@ void Replxx::ReplxxImpl::set_editing_mode( int mode ) {
 	_editingMode = mode;
 }
 
+void Replxx::ReplxxImpl::set_escdelay( int delay ) {
+	_terminal.set_escdelay( delay );
+}
+
 /**
  * Display the dynamic incremental search prompt and the current user input
  * line.

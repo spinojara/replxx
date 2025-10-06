@@ -660,6 +660,8 @@ public:
 
 	void set_editing_mode( int mode );
 
+	void set_escdelay( int delay );
+
 	/*! \brief Set maximum number of entries in history list.
 	 */
 	void set_max_history_size( int len );

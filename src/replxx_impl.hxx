@@ -197,6 +197,7 @@ public:
 	void set_no_color( bool val );
 	void set_indent_multiline( bool val );
 	void set_editing_mode( int mode );
+	void set_escdelay( int delay );
 	void set_max_history_size( int len );
 	void set_completion_count_cutoff( int len );
 	int install_window_change_handler( void );
