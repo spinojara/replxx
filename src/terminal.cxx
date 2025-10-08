@@ -101,8 +101,8 @@ Terminal::Terminal(int in_fd_, int out_fd_)
 	: _origTermios()
 	, _rawModeTermios()
 	, _interrupt()
-	, _escDelay(0)
 #endif
+	, _escDelay(0)
 	, _rawMode( false )
 	, _utf8()
 	, _in_fd(in_fd_)
@@ -281,6 +281,10 @@ int Terminal::reset_raw_mode( void ) {
 #endif
 }
 
+void Terminal::set_escdelay(int delay) {
+	_escDelay = delay;
+}
+
 void Terminal::disable_raw_mode(void) {
 	if ( ! _rawMode ) {
 		return;
@@ -302,9 +306,6 @@ void Terminal::disable_raw_mode(void) {
 
 #ifndef _WIN32
 
-void Terminal::set_escdelay(int delay) {
-	_escDelay = delay;
-}
 /**
  * Read a UTF-8 sequence from the non-Windows keyboard and return the Unicode
  * (char32_t) character it encodes
@@ -474,8 +475,14 @@ char32_t Terminal::read_char( void ) {
 					continue; // in raw mode, ReadConsoleInput shows shift, ctrl - ignore them
 			}
 		} else if ( key == Replxx::KEY::ESCAPE ) { // ESC, set flag for later
-			escSeen = true;
-			continue;
+			if ( _escDelay > 0 ) {
+				c = key;
+				break;
+			}
+			else {
+				escSeen = true;
+				continue;
+			}
 		} else if ( ( key >= 0xD800 ) && ( key <= 0xDBFF ) ) {
 			highSurrogate = key - 0xD800;
 			continue;

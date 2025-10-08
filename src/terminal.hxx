@@ -40,8 +40,8 @@ private:
 	struct termios _origTermios; /* in order to restore at exit */
 	struct termios _rawModeTermios; /* in order to reset raw mode after callbacks */
 	int _interrupt[2];
-	int _escDelay;
 #endif
+	int _escDelay;
 	bool _rawMode; /* for destructor to check if restore is needed */
 	Utf8String _utf8;
 
@@ -72,10 +72,10 @@ public:
 	void notify_event( EVENT_TYPE );
 	void jump_cursor( int, int );
 	void set_cursor_visible( bool );
+	void set_escdelay(int delay);
 #ifndef _WIN32
 	int read_verbatim( char32_t*, int );
 	int install_window_change_handler( void );
-	void set_escdelay(int delay);
 #endif
 private:
 	void enable_out( void );
