@@ -1445,6 +1445,14 @@ int Replxx::ReplxxImpl::get_input_line( void ) {
 	return ( next == Replxx::ACTION_RESULT::RETURN ? _data.length() : -1 );
 }
 
+static bool isIdentifier(char c)
+{
+    return (c >= 'a' && c <= 'z')
+        || (c >= 'A' && c <= 'Z')
+        || (c >= '0' && c <= '9')
+        || c == '_';
+}
+
 Replxx::ACTION_RESULT Replxx::ReplxxImpl::action( action_trait_t actionTrait_, key_press_handler_raw_t const& handler_, char32_t code_ ) {
 	Replxx::ACTION_RESULT res( ( this->*handler_ )( code_ ) );
 	call_modify_callback();
@@ -1477,6 +1485,8 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::action( action_trait_t actionTrait_, k
 			|| ( _oldPos == _data.length() )
 			|| ( ( _pos < _data.length() ) && strchr( "{}[]()", _data[_pos] ) )
 			|| ( ( _oldPos < _data.length() ) && strchr( "{}[]()", _data[_oldPos] ) )
+            || ( ( _pos != _oldPos + 1 || _pos + 1 != _oldPos ) ) /* jumping across characters */
+            || ( ( _pos < _data.length() && isIdentifier(_data[_pos])) != ( _oldPos < _data.length() && isIdentifier(_data[_oldPos])))
 		);
 		_moveCursor = _pos != _oldPos;
 	}
