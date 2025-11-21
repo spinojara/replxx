@@ -322,6 +322,7 @@ char32_t read_unicode_character(int in_fd_, int escDelay_) {
 		ssize_t nread;
 		struct pollfd fd = { .fd = in_fd_, .events = POLLIN };
 		do {
+			errno = 0;
 			nread = poll(&fd, 1, escDelay_ > 0 ? escDelay_ : -1);
 		} while ((nread < 0) && (errno == EINTR || errno == EAGAIN));
 
