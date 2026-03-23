@@ -772,6 +772,11 @@ void Replxx::ReplxxImpl::render( char32_t ch ) {
 	if ( ch == Replxx::KEY::ESCAPE ) {
 		_display.push_back( '^' );
 		_display.push_back( '[' );
+	} else if ( ch == '\t' ) {
+		_display.push_back( ' ' );
+		_display.push_back( ' ' );
+		_display.push_back( ' ' );
+		_display.push_back( ' ' );
 	} else if ( is_control_code( ch ) && ( ch != '\n' ) ) {
 		_display.push_back( '^' );
 		_display.push_back( control_to_human( ch ) );
@@ -1498,7 +1503,7 @@ Replxx::ACTION_RESULT Replxx::ReplxxImpl::insert_character( char32_t c ) {
 	 * beep on unknown Ctrl and/or Meta keys
 	 * don't insert control characters
 	 */
-	if ( ( c >= static_cast<int>( Replxx::KEY::BASE ) ) || ( is_control_code( c ) && ( c != '\n' ) ) ) {
+	if ( ( c >= static_cast<int>( Replxx::KEY::BASE ) ) || ( is_control_code( c ) && ( c != '\n' ) && ( c != '\t' ) ) ) {
 		beep(_err_fd);
 		return ( Replxx::ACTION_RESULT::CONTINUE );
 	}
