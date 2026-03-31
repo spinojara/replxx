@@ -1174,7 +1174,7 @@ char32_t Replxx::ReplxxImpl::do_complete_line( bool showCompletions_ ) {
 	int longestCommonPrefix = 0;
 	int completionsCount( static_cast<int>( _completions.size() ) );
 	int selectedCompletion( 0 );
-	if ( ( completionsCount > 1 ) && ( _hintSelection != -1 ) ) {
+	if ( ( completionsCount > 1 ) && ( _hintSelection >= 0 ) && ( _hintSelection < completionsCount ) ) {
 		selectedCompletion = _hintSelection;
 		completionsCount = 1;
 	}
