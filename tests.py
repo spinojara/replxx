@@ -242,25 +242,13 @@ def rapid( item ):
 		return r
 	return list( map( Rapid, item ) )
 
-def _flaky( retries = 5 ):
-	"""Retry a test method on AssertionError / pexpect EOF / TIMEOUT. Used for
-	async tests whose output depends on wall-clock scheduling and so can race
-	under heavy parallel load."""
-	import functools
-	def decorate( fn ):
-		@functools.wraps( fn )
-		def wrapper( self_, *a, **kw ):
-			last = None
-			for attempt in range( retries ):
-				try:
-					return fn( self_, *a, **kw )
-				except ( AssertionError, pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT ) as e:
-					last = e
-					if attempt + 1 < retries:
-						time.sleep( 0.2 )
-			raise last
-		return wrapper
-	return decorate
+def _no_parallel( fn ):
+	"""Mark a test as not safe to run inside the parallel pool. Such tests
+	depend on wall-clock scheduling (spinner ticks, async print interleaving)
+	and become unreliable when the host is saturated by other workers; the
+	parallel runner runs them sequentially after the pool drains."""
+	fn._no_parallel = True
+	return fn
 
 class ReplxxTests( unittest.TestCase ):
 	_prompt_ = "\033\\[1;32mreplxx\033\\[0m> "
@@ -1766,7 +1754,7 @@ class ReplxxTests( unittest.TestCase ):
 	def test_no_terminal( self_ ):
 		res = subprocess.run( [ ReplxxTests._cSample_, "q1" ], input = b"replxx FTW!\n", stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 		self_.assertSequenceEqual( res.stdout, b"starting...\nreplxx FTW!\n\nExiting Replxx\n" )
-	@_flaky()
+	@_no_parallel
 	def test_async_print( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], ["<c1><ceos>0\r\n"
@@ -1812,7 +1800,7 @@ class ReplxxTests( unittest.TestCase ):
 			dimensions = ( 10, 40 ),
 			pause = 0.5
 		)
-	@_flaky()
+	@_no_parallel
 	def test_async_emulate_key_press( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], [
@@ -2550,7 +2538,7 @@ class ReplxxTests( unittest.TestCase ):
 			"some textnot on start color_br\n",
 			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
-	@_flaky()
+	@_no_parallel
 	def test_async_prompt( self_ ):
 		self_.check_scenario(
 			[ "<up>", "r", "i", "g", "h", "t", "g<tab><cr><c-d>" ], [
@@ -3404,25 +3392,40 @@ def _run_parallel( jobs ):
 	import multiprocessing
 	loader = unittest.TestLoader()
 	suite = loader.loadTestsFromTestCase( ReplxxTests )
-	names = []
+	parallel = []
+	serial = []
 	def _collect( s ):
 		for t in s:
 			if isinstance( t, unittest.TestSuite ):
 				_collect( t )
+				continue
+			method = getattr( type( t ), t._testMethodName, None )
+			if method is not None and getattr( method, "_no_parallel", False ):
+				serial.append( t.id() )
 			else:
-				names.append( t.id() )
+				parallel.append( t.id() )
 	_collect( suite )
 	failures = 0
 	passes = 0
+
+	def _report( name, ok, out ):
+		nonlocal failures, passes
+		marker = "ok" if ok else "FAIL"
+		print( "{:4} {}".format( marker, name ) )
+		if not ok:
+			print( out )
+			failures += 1
+		else:
+			passes += 1
+
 	with multiprocessing.Pool( processes = jobs ) as pool:
-		for name, ok, out in pool.imap_unordered( _run_one, names ):
-			marker = "ok" if ok else "FAIL"
-			print( "{:4} {}".format( marker, name ) )
-			if not ok:
-				print( out )
-				failures += 1
-			else:
-				passes += 1
+		for name, ok, out in pool.imap_unordered( _run_one, parallel ):
+			_report( name, ok, out )
+	# Run the timing-sensitive tests sequentially once the pool drains, so
+	# they are not racing against ~jobs other PTYs.
+	for name in serial:
+		_report( *_run_one( name ) )
+
 	print( "{} passed, {} failed".format( passes, failures ) )
 	return 0 if failures == 0 else 1
 
