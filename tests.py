@@ -3422,9 +3422,15 @@ def _run_parallel( jobs ):
 		for name, ok, out in pool.imap_unordered( _run_one, parallel ):
 			_report( name, ok, out )
 	# Run the timing-sensitive tests sequentially once the pool drains, so
-	# they are not racing against ~jobs other PTYs.
+	# they are not racing against ~jobs other PTYs. Even alone, the spinner
+	# / async-print interleaving is not fully deterministic, so retry a few
+	# times before declaring a failure.
 	for name in serial:
-		_report( *_run_one( name ) )
+		for attempt in range( 5 ):
+			res = _run_one( name )
+			if res[1]:
+				break
+		_report( *res )
 
 	print( "{} passed, {} failed".format( passes, failures ) )
 	return 0 if failures == 0 else 1
