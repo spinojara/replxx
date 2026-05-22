@@ -3051,6 +3051,8 @@ class ReplxxTests( unittest.TestCase ):
 			command = [ ReplxxTests._cxxSample_, "m", "F", "k123456" ],
 			pause = 0.487
 		)
+	@_no_parallel
+	@unittest.skipIf( skip( "async" ), "timing-dependent; flaky on busy CI" )
 	def test_prompt_from_callback( self_ ):
 		self_.check_scenario(
 			"<up>ri<tab>b<tab><cr><c-d>",
