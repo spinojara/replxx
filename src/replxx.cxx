@@ -85,6 +85,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <iostream>
 
 #ifdef _WIN32
 
@@ -343,10 +344,10 @@ Replxx::Color rgb666( int red_, int green_, int blue_ ) {
 
 }
 
-// ::Replxx* replxx_init() {
-// 	typedef ::Replxx* replxx_data_t;
-// 	return ( reinterpret_cast<replxx_data_t>( new replxx::Replxx::ReplxxImpl( nullptr, nullptr, nullptr ) ) );
-// }
+::Replxx* replxx_init() {
+	typedef ::Replxx* replxx_data_t;
+	return ( reinterpret_cast<replxx_data_t>( new replxx::Replxx::ReplxxImpl( std::cin, std::cout, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO ) ) );
+}
 
 void replxx_end( ::Replxx* replxx_ ) {
 	delete reinterpret_cast<replxx::Replxx::ReplxxImpl*>( replxx_ );
