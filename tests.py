@@ -6,7 +6,11 @@ import re
 import os
 import subprocess
 import signal
+import sys
+import tempfile
 import time
+
+_TEST_BASE_CWD = os.path.abspath( os.path.dirname( __file__ ) or "." )
 
 keytab = {
 	"<home>": "\033[1~",
@@ -240,9 +244,21 @@ def rapid( item ):
 
 class ReplxxTests( unittest.TestCase ):
 	_prompt_ = "\033\\[1;32mreplxx\033\\[0m> "
-	_cxxSample_ = "./build/debug/replxx-example-cxx-api"
-	_cSample_ = "./build/debug/replxx-example-c-api"
+	_cxxSample_ = os.path.join( _TEST_BASE_CWD, "build/debug/replxx-example-cxx-api" )
+	_cSample_ = os.path.join( _TEST_BASE_CWD, "build/debug/replxx-example-c-api" )
 	_end_ = "\r\nExiting Replxx\r\n"
+
+	def setUp( self_ ):
+		# Per-test tmpdir; binary uses it as cwd so each test has its own
+		# replxx_history.txt and friends. Required for parallel test runs.
+		self_._tmpdir = tempfile.mkdtemp( prefix = "replxx-test-" )
+		self_._prev_cwd = os.getcwd()
+		os.chdir( self_._tmpdir )
+
+	def tearDown( self_ ):
+		os.chdir( self_._prev_cwd )
+		import shutil
+		shutil.rmtree( self_._tmpdir, ignore_errors = True )
 	def send_str( self_, str_, intraKeyDelay_ ):
 		if isinstance(str_, Rapid):
 			self_._replxx.send( str_ )
@@ -3284,7 +3300,50 @@ def parseArgs( self, func, argv ):
 	verbosity = self.verbosity
 	return res
 
+def _run_one( test_name ):
+	"""Worker entry point for parallel runs: run a single test by name."""
+	global verbosity
+	verbosity = 0
+	import io
+	loader = unittest.TestLoader()
+	suite = loader.loadTestsFromName( test_name )
+	buf = io.StringIO()
+	runner = unittest.TextTestRunner( stream = buf, verbosity = 2 )
+	result = runner.run( suite )
+	return ( test_name, result.wasSuccessful(), buf.getvalue() )
+
+def _run_parallel( jobs ):
+	import multiprocessing
+	loader = unittest.TestLoader()
+	suite = loader.loadTestsFromTestCase( ReplxxTests )
+	names = []
+	def _collect( s ):
+		for t in s:
+			if isinstance( t, unittest.TestSuite ):
+				_collect( t )
+			else:
+				names.append( t.id() )
+	_collect( suite )
+	failures = 0
+	passes = 0
+	with multiprocessing.Pool( processes = jobs ) as pool:
+		for name, ok, out in pool.imap_unordered( _run_one, names ):
+			marker = "ok" if ok else "FAIL"
+			print( "{:4} {}".format( marker, name ) )
+			if not ok:
+				print( out )
+				failures += 1
+			else:
+				passes += 1
+	print( "{} passed, {} failed".format( passes, failures ) )
+	return 0 if failures == 0 else 1
+
 if __name__ == "__main__":
+	if "-j" in sys.argv:
+		i = sys.argv.index( "-j" )
+		jobs = int( sys.argv[i + 1] ) if i + 1 < len( sys.argv ) else os.cpu_count() or 1
+		del sys.argv[i:i + 2]
+		sys.exit( _run_parallel( jobs ) )
 	pa = unittest.TestProgram.parseArgs
 	unittest.TestProgram.parseArgs = lambda self, argv: parseArgs( self, pa, argv )
 	unittest.main()
