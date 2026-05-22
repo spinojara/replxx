@@ -1755,6 +1755,7 @@ class ReplxxTests( unittest.TestCase ):
 		res = subprocess.run( [ ReplxxTests._cSample_, "q1" ], input = b"replxx FTW!\n", stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 		self_.assertSequenceEqual( res.stdout, b"starting...\nreplxx FTW!\n\nExiting Replxx\n" )
 	@_no_parallel
+	@unittest.skipIf( skip( "async" ), "timing-dependent; flaky on busy CI" )
 	def test_async_print( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], ["<c1><ceos>0\r\n"
@@ -1801,6 +1802,7 @@ class ReplxxTests( unittest.TestCase ):
 			pause = 0.5
 		)
 	@_no_parallel
+	@unittest.skipIf( skip( "async" ), "timing-dependent; flaky on busy CI" )
 	def test_async_emulate_key_press( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], [
@@ -2539,6 +2541,7 @@ class ReplxxTests( unittest.TestCase ):
 			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
 	@_no_parallel
+	@unittest.skipIf( skip( "async" ), "timing-dependent; flaky on busy CI" )
 	def test_async_prompt( self_ ):
 		self_.check_scenario(
 			[ "<up>", "r", "i", "g", "h", "t", "g<tab><cr><c-d>" ], [

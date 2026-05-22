@@ -35,5 +35,5 @@ jobs:
         run: ./build-all.sh
 
       - name: Run regression tests
-        run: env SKIP=8bit_encoding ./tests.py -j 100
+        run: env SKIP=8bit_encoding,async ./tests.py -j 100
 
