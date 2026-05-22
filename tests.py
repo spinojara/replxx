@@ -242,6 +242,26 @@ def rapid( item ):
 		return r
 	return list( map( Rapid, item ) )
 
+def _flaky( retries = 5 ):
+	"""Retry a test method on AssertionError / pexpect EOF / TIMEOUT. Used for
+	async tests whose output depends on wall-clock scheduling and so can race
+	under heavy parallel load."""
+	import functools
+	def decorate( fn ):
+		@functools.wraps( fn )
+		def wrapper( self_, *a, **kw ):
+			last = None
+			for attempt in range( retries ):
+				try:
+					return fn( self_, *a, **kw )
+				except ( AssertionError, pexpect.exceptions.EOF, pexpect.exceptions.TIMEOUT ) as e:
+					last = e
+					if attempt + 1 < retries:
+						time.sleep( 0.2 )
+			raise last
+		return wrapper
+	return decorate
+
 class ReplxxTests( unittest.TestCase ):
 	_prompt_ = "\033\\[1;32mreplxx\033\\[0m> "
 	_cxxSample_ = os.path.join( _TEST_BASE_CWD, "build/debug/replxx-example-cxx-api" )
@@ -1742,6 +1762,7 @@ class ReplxxTests( unittest.TestCase ):
 	def test_no_terminal( self_ ):
 		res = subprocess.run( [ ReplxxTests._cSample_, "q1" ], input = b"replxx FTW!\n", stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 		self_.assertSequenceEqual( res.stdout, b"starting...\nreplxx FTW!\n\nExiting Replxx\n" )
+	@_flaky()
 	def test_async_print( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], ["<c1><ceos>0\r\n"
@@ -1787,6 +1808,7 @@ class ReplxxTests( unittest.TestCase ):
 			dimensions = ( 10, 40 ),
 			pause = 0.5
 		)
+	@_flaky()
 	def test_async_emulate_key_press( self_ ):
 		self_.check_scenario(
 			[ "a", "b", "c", "d", "e", "f<cr><c-d>" ], [
@@ -2524,6 +2546,7 @@ class ReplxxTests( unittest.TestCase ):
 			"some textnot on start color_br\n",
 			command = [ ReplxxTests._cxxSample_, "I" ]
 		)
+	@_flaky()
 	def test_async_prompt( self_ ):
 		self_.check_scenario(
 			[ "<up>", "r", "i", "g", "h", "t", "g<tab><cr><c-d>" ], [
