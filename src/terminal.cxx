@@ -653,7 +653,8 @@ Terminal::EVENT_TYPE Terminal::wait_for_input( int long timeout_ ) {
 		if ( err == 0 ) {
 			return ( EVENT_TYPE::TIMEOUT );
 		}
-		if ( fds[1].revents & ( POLLIN | POLLHUP | POLLERR ) ) {
+		short const ready_mask( POLLIN | POLLHUP | POLLERR | POLLNVAL );
+		if ( fds[1].revents & ready_mask ) {
 			char data( 0 );
 			static_cast<void>( read( _interrupt[0], &data, 1 ) == 1 );
 			if ( data == 'k' ) {
@@ -666,7 +667,7 @@ Terminal::EVENT_TYPE Terminal::wait_for_input( int long timeout_ ) {
 				return ( EVENT_TYPE::RESIZE );
 			}
 		}
-		if ( fds[0].revents & ( POLLIN | POLLHUP | POLLERR ) ) {
+		if ( fds[0].revents & ready_mask ) {
 			return ( EVENT_TYPE::KEY_PRESS );
 		}
 	}
