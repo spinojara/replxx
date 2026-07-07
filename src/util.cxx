@@ -98,6 +98,15 @@ int virtual_render( char32_t const* display_, int size_, int& x_, int& y_, int s
 			++ pos;
 			continue;
 		}
+		if ( c == '\t' ) {
+			render( ' ', true );
+			render( ' ', true );
+			render( ' ', true );
+			render( ' ', true );
+			advance_cursor( 4 );
+			++ pos;
+			continue;
+		}
 		if ( is_control_code( c ) ) {
 			render( c, true );
 			advance_cursor( 2 );
@@ -132,15 +141,14 @@ char const* ansi_color( Replxx::Color color_ ) {
 	} else if ( fg <= static_cast<int unsigned>( Replxx::Color::LIGHTGRAY ) ) {
 		pos = snprintf( colorBuffer, MAX_COLOR_CODE_SIZE, "\033[0;22;3%d%s%sm", fg, underline, bold );
 	} else if ( fg <= static_cast<int unsigned>( Replxx::Color::WHITE ) ) {
-#ifdef _WIN32
-		static bool const has256colorDefault( true );
-#else
-		static bool const has256colorDefault( false );
-#endif
-		static char const* TERM( getenv( "TERM" ) );
-		static bool const has256color( TERM ? ( strstr( TERM, "256" ) != nullptr ) : has256colorDefault );
-		static char const* ansiEscapeCodeTemplate = has256color ? "\033[0;9%d%s%sm" : "\033[0;1;3%d%s%sm";
-		pos = snprintf( colorBuffer, MAX_COLOR_CODE_SIZE, ansiEscapeCodeTemplate, fg - static_cast<int>( Replxx::Color::GRAY ), underline, bold );
+		/* Aixterm bright color codes (90-97) belong to the basic 16-color set and are supported
+		 * by virtually every terminal in use. Previously they were emitted only when TERM
+		 * contained "256" (they are unrelated to 256-color support), with a fallback to
+		 * bold + dark color otherwise. That broke bright colors on terminals with TERM values
+		 * like xterm-ghostty, xterm-kitty, alacritty or foot: modern terminals do not render
+		 * bold as bright by default, so e.g. GRAY (bold black) degraded to plain black,
+		 * invisible on a dark background. */
+		pos = snprintf( colorBuffer, MAX_COLOR_CODE_SIZE, "\033[0;9%d%s%sm", fg - static_cast<int>( Replxx::Color::GRAY ), underline, bold );
 	} else {
 		pos = snprintf( colorBuffer, MAX_COLOR_CODE_SIZE, "\033[0;38;5;%d%s%sm", fg, underline, bold );
 	}

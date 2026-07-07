@@ -26,10 +26,10 @@ static DWORD const ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4;
 
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <sys/select.h>
+#include <poll.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <poll.h>
+#include <limits.h>
 
 #endif /* _WIN32 */
 
@@ -651,21 +651,26 @@ Terminal::EVENT_TYPE Terminal::wait_for_input( int long timeout_ ) {
 		}
 	}
 #else
-	fd_set fdSet;
-	int nfds( max( {_interrupt[0], _interrupt[1], _in_fd} ) + 1 );
+	pollfd fds[2];
+	fds[0].fd = _in_fd;
+	fds[0].events = POLLIN;
+	fds[1].fd = _interrupt[0];
+	fds[1].events = POLLIN;
+	int const poll_timeout( timeout_ > 0
+		? ( timeout_ > INT_MAX ? INT_MAX : static_cast<int>( timeout_ ) )
+		: -1 );
 	while ( true ) {
-		FD_ZERO( &fdSet );
-		FD_SET( _in_fd, &fdSet );
-		FD_SET( _interrupt[0], &fdSet );
-		timeval tv{ timeout_ / 1000, static_cast<suseconds_t>( ( timeout_ % 1000 ) * 1000 ) };
-		int err( select( nfds, &fdSet, nullptr, nullptr, timeout_ > 0 ? &tv : nullptr ) );
+		fds[0].revents = 0;
+		fds[1].revents = 0;
+		int err( poll( fds, 2, poll_timeout ) );
 		if ( ( err == -1 ) && ( errno == EINTR ) ) {
 			continue;
 		}
 		if ( err == 0 ) {
 			return ( EVENT_TYPE::TIMEOUT );
 		}
-		if ( FD_ISSET( _interrupt[0], &fdSet ) ) {
+		short const ready_mask( POLLIN | POLLHUP | POLLERR | POLLNVAL );
+		if ( fds[1].revents & ready_mask ) {
 			char data( 0 );
 			static_cast<void>( read( _interrupt[0], &data, 1 ) == 1 );
 			if ( data == 'k' ) {
@@ -678,7 +683,7 @@ Terminal::EVENT_TYPE Terminal::wait_for_input( int long timeout_ ) {
 				return ( EVENT_TYPE::RESIZE );
 			}
 		}
-		if ( FD_ISSET( _in_fd, &fdSet ) ) {
+		if ( fds[0].revents & ready_mask ) {
 			return ( EVENT_TYPE::KEY_PRESS );
 		}
 	}
