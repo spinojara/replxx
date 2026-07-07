@@ -102,6 +102,7 @@ Terminal::Terminal(int in_fd_, int out_fd_)
 	, _rawModeTermios()
 	, _interrupt()
 #endif
+	, _escDelay(0)
 	, _rawMode( false )
 	, _utf8()
 	, _in_fd(in_fd_)
@@ -280,6 +281,10 @@ int Terminal::reset_raw_mode( void ) {
 #endif
 }
 
+void Terminal::set_escdelay(int delay) {
+	_escDelay = delay;
+}
+
 void Terminal::disable_raw_mode(void) {
 	if ( ! _rawMode ) {
 		return;
@@ -307,7 +312,7 @@ void Terminal::disable_raw_mode(void) {
  *
  * @return char32_t Unicode character
  */
-char32_t read_unicode_character(int in_fd_) {
+char32_t read_unicode_character(int in_fd_, int escDelay_) {
 	static char8_t utf8String[5];
 	static size_t utf8Count = 0;
 	while (true) {
@@ -315,9 +320,13 @@ char32_t read_unicode_character(int in_fd_) {
 
 		/* Continue reading if interrupted by signal. */
 		ssize_t nread;
+		struct pollfd fd = { .fd = in_fd_, .events = POLLIN };
 		do {
-			nread = read( in_fd_, &c, 1 );
-		} while ((nread == -1) && (errno == EINTR));
+			errno = 0;
+			nread = poll(&fd, 1, escDelay_ > 0 ? escDelay_ : -1);
+		} while ((nread < 0) && (errno == EINTR || errno == EAGAIN));
+
+		if (nread > 0 && fd.revents & POLLIN) nread = read( in_fd_, &c, 1 );
 
 		if (nread <= 0) return 0;
 		if (c <= 0x7F || locale::is8BitEncoding) { // short circuit ASCII
@@ -467,8 +476,14 @@ char32_t Terminal::read_char( void ) {
 					continue; // in raw mode, ReadConsoleInput shows shift, ctrl - ignore them
 			}
 		} else if ( key == Replxx::KEY::ESCAPE ) { // ESC, set flag for later
-			escSeen = true;
-			continue;
+			if ( _escDelay > 0 ) {
+				c = key;
+				break;
+			}
+			else {
+				escSeen = true;
+				continue;
+			}
 		} else if ( ( key >= 0xD800 ) && ( key <= 0xDBFF ) ) {
 			highSurrogate = key - 0xD800;
 			continue;
@@ -558,10 +573,11 @@ char32_t Terminal::read_char( void ) {
 	}
 #endif // __REPLXX_DEBUG__
 
-	c = EscapeSequenceProcessing::doDispatch(_in_fd, _err_fd, c);
-	if ( is_control_code( c ) ) {
+	c = EscapeSequenceProcessing::doDispatch(_in_fd, _err_fd, c, _escDelay);
+	if ( !(_escDelay && c == 27) && is_control_code( c ) ) {
 		c = Replxx::KEY::control( control_to_human( c ) );
 	}
+
 #endif // #_WIN32
 	return ( c );
 }
